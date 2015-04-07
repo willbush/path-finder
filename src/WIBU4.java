@@ -1,0 +1,2 @@
+public class WIBU4 {
+}
