@@ -4,6 +4,7 @@ class Vertex {
     private int id;
     Vertex previous;
     int distance, heapKey;
+    public boolean isKnown;
 
     Vertex(int id) {
         this.id = id;
@@ -214,15 +215,17 @@ class Graph {
     }
 
     public void printDistances() {
-        for (int v = 1; v <= vertices.length; v++) {
-            StringBuilder sb = new StringBuilder(sourceVertex + " " + vertices[v].distance);
+        for (int v = 1; v < vertices.length; v++) {
             Vertex current = vertices[v].previous;
-
+            StringBuilder sb = new StringBuilder();
             while (current != null) {
+                sb.insert(0, current.getID() + " ");
                 current = current.previous;
-                sb.insert(1, " " + current.getID());
             }
-            System.out.println(sb.toString());
+            if (v == sourceVertex)
+                sb.insert(0, v + " ");
+            System.out.print(sb.toString() + v + " " + vertices[v].distance);
+            System.out.println();
         }
     }
 }
@@ -242,6 +245,7 @@ class PathFinder {
     public void findShortestPaths() {
         while (!pq.isEmpty()) {
             Vertex min = pq.deleteMin();
+            min.isKnown = true;
             OutDegree o = g.getVertex(min.getID()).getOutDegrees();
             while (o != null) {
                 relax(min, o);
@@ -253,8 +257,10 @@ class PathFinder {
 
     private void relax(Vertex min, OutDegree o) {
         Vertex neighbor = o.edge.getNeighbor(min.getID());
-        int currentDistance = min.distance + o.edge.getWeight();
+        if (neighbor.isKnown)
+            return;
 
+        int currentDistance = min.distance + o.edge.getWeight();
         if (neighbor.distance > currentDistance) {
             neighbor.distance = currentDistance;
             pq.percolateUp(neighbor.heapKey);
