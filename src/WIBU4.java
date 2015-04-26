@@ -1,8 +1,9 @@
 class Vertex {
     private OutDegree outDegrees;
     private OutDegree tail;
+    private int id;
     Vertex previous;
-    int id, distance, heapKey;
+    int distance, heapKey;
 
     Vertex(int id) {
         this.id = id;
@@ -27,11 +28,15 @@ class Vertex {
     public OutDegree getOutDegrees() {
         return outDegrees;
     }
+
+    public int getID() {
+        return id;
+    }
 }
 
 class Edge {
     private Vertex left, right;
-    int weight;
+    private int weight;
 
     Edge(Vertex left, Vertex right, int weight) {
         this.left = left;
@@ -40,10 +45,14 @@ class Edge {
     }
 
     public Vertex getNeighbor(int vertexID) {
-        if (right.id == vertexID)
+        if (right.getID() == vertexID)
             return left;
         else
             return right;
+    }
+
+    public int getWeight() {
+        return weight;
     }
 }
 
@@ -56,6 +65,14 @@ class OutDegree {
     }
 }
 
+/**
+ * This priority queue is implemented using a min binary heap. Since every
+ * graph starts out with a known vertex with minimum distance (the source)
+ * and all other vertices are MAX_INT, buildHeap is not necessary. The heap
+ * is built a vertex at a time as edges are added to the adjacency list.
+ * The queue is constructed with a min (source) vertex and all other added
+ * vertices are assumed to be MAX_INT.
+ */
 class MyPriorityQueue {
     private int elementCount, index = 1;
     private Vertex[] heap;
@@ -63,6 +80,7 @@ class MyPriorityQueue {
     MyPriorityQueue(int capacity, Vertex min) {
         elementCount = capacity;
         heap = new Vertex[capacity + 1];
+        min.heapKey = index;
         heap[index++] = min;
     }
 
@@ -136,24 +154,23 @@ class MyPriorityQueue {
         Vertex temp = heap[x];
         heap[x] = heap[y];
         heap[y] = temp;
+
+        heap[x].heapKey = x;
+        heap[y].heapKey = y;
     }
 
     public boolean isEmpty() {
         return elementCount == 0;
-    }
-
-    public void print() {
-        for (Vertex v : heap)
-            if (v != null)
-                System.out.println(v.distance);
     }
 }
 
 class Graph {
     private Vertex[] vertices;
     private MyPriorityQueue pq;
+    private int sourceVertex;
 
     Graph(int numOfVertices, int sourceVertex) {
+        this.sourceVertex = sourceVertex;
         vertices = new Vertex[numOfVertices + 1]; // capacity + 1 so vertex id == index
         Vertex source = new Vertex(sourceVertex, 0);
         vertices[sourceVertex] = source;
@@ -161,20 +178,31 @@ class Graph {
     }
 
     public void addEdge(int fromVertexID, int toVertexID, int weight) {
-        Vertex fromV = new Vertex(fromVertexID);
-        Vertex toV = new Vertex(toVertexID);
+        Vertex fromV = getExistingOrNewVertex(toVertexID);
+        Vertex toV = getExistingOrNewVertex(fromVertexID);
         Edge e = new Edge(fromV, toV, weight);
 
         addVertexAndEdge(fromV, e);
         addVertexAndEdge(toV, e);
     }
 
+    private Vertex getExistingOrNewVertex(int v) {
+        if (vertexExist(v))
+            return vertices[v];
+        else
+            return new Vertex(v);
+    }
+
     private void addVertexAndEdge(Vertex v, Edge e) {
-        if (vertices[v.id] == null) {
-            vertices[v.id] = v;
+        if (!vertexExist(v.getID())) {
+            vertices[v.getID()] = v;
             pq.addVertex(v);
         }
-        vertices[v.id].addEdge(e);
+        vertices[v.getID()].addEdge(e);
+    }
+
+    private boolean vertexExist(int v) {
+        return vertices[v] != null;
     }
 
     public MyPriorityQueue getPriorityQueue() {
@@ -183,6 +211,19 @@ class Graph {
 
     public Vertex getVertex(int v) {
         return vertices[v];
+    }
+
+    public void printDistances() {
+        for (int v = 1; v <= vertices.length; v++) {
+            StringBuilder sb = new StringBuilder(sourceVertex + " " + vertices[v].distance);
+            Vertex current = vertices[v].previous;
+
+            while (current != null) {
+                current = current.previous;
+                sb.insert(1, " " + current.getID());
+            }
+            System.out.println(sb.toString());
+        }
     }
 }
 
@@ -193,23 +234,26 @@ class PathFinder {
     PathFinder(Graph g) {
         this.g = g;
         pq = g.getPriorityQueue();
-        findShortestPaths();
     }
 
-    private void findShortestPaths() {
+    /**
+     * finds the shortest path using Dijkstra's algorithm
+     */
+    public void findShortestPaths() {
         while (!pq.isEmpty()) {
             Vertex min = pq.deleteMin();
-            OutDegree o = g.getVertex(min.id).getOutDegrees();
+            OutDegree o = g.getVertex(min.getID()).getOutDegrees();
             while (o != null) {
                 relax(min, o);
                 o = o.next;
             }
         }
+        g.printDistances();
     }
 
     private void relax(Vertex min, OutDegree o) {
-        Vertex neighbor = o.edge.getNeighbor(min.id);
-        int currentDistance = min.distance + o.edge.weight;
+        Vertex neighbor = o.edge.getNeighbor(min.getID());
+        int currentDistance = min.distance + o.edge.getWeight();
 
         if (neighbor.distance > currentDistance) {
             neighbor.distance = currentDistance;

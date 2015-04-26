@@ -1,20 +1,14 @@
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-
 import static org.junit.Assert.assertEquals;
 
 public class pathTest {
     private static final int numOfVertices = 7;
-    private final ByteArrayOutputStream out = new ByteArrayOutputStream();
     private Graph g = new Graph(numOfVertices, 1);
 
     @Before
     public void arrange() {
-        System.setOut(new PrintStream(out));
-
         g.addEdge(1, 2, 2);
         g.addEdge(1, 4, 1);
         g.addEdge(2, 5, 10);
@@ -45,7 +39,7 @@ public class pathTest {
         int index = 0;
 
         while (o != null) {
-            assertEquals(neighbors[index], o.edge.getNeighbor(v).id);
+            assertEquals(neighbors[index], o.edge.getNeighbor(v).getID());
             o = o.next;
             index++;
         }
