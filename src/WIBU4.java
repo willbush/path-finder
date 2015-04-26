@@ -1,6 +1,8 @@
 class Vertex {
-    int distance;
-    int id;
+    private OutDegree outDegrees;
+    private OutDegree tail;
+    Vertex previous;
+    int id, distance, heapKey;
 
     Vertex(int id) {
         this.id = id;
@@ -11,17 +13,37 @@ class Vertex {
         this.id = id;
         this.distance = distance;
     }
+
+    public void addEdge(Edge e) {
+        if (outDegrees == null) {
+            outDegrees = new OutDegree(e);
+            tail = outDegrees;
+        } else {
+            tail.next = new OutDegree(e);
+            tail = tail.next;
+        }
+    }
+
+    public OutDegree getOutDegrees() {
+        return outDegrees;
+    }
 }
 
 class Edge {
-    Vertex left, right;
+    private Vertex left, right;
     int weight;
-
 
     Edge(Vertex left, Vertex right, int weight) {
         this.left = left;
         this.right = right;
         this.weight = weight;
+    }
+
+    public Vertex getNeighbor(int vertexID) {
+        if (right.id == vertexID)
+            return left;
+        else
+            return right;
     }
 }
 
@@ -31,26 +53,93 @@ class OutDegree {
 
     OutDegree(Edge edge) {
         this.edge = edge;
-        next = null;
-    }
-
-    OutDegree(Edge edge, OutDegree next) {
-        this.edge = edge;
-        this.next = next;
     }
 }
 
 class MyPriorityQueue {
-    private int index = 1;
+    private int elementCount, index = 1;
     private Vertex[] heap;
 
     MyPriorityQueue(int capacity, Vertex min) {
+        elementCount = capacity;
         heap = new Vertex[capacity + 1];
         heap[index++] = min;
     }
 
     public void addVertex(Vertex v) {
+        v.heapKey = index;
         heap[index++] = v;
+    }
+
+    public Vertex deleteMin() {
+        Vertex min = heap[1];
+        heap[1] = heap[elementCount];
+        heap[elementCount--] = null;
+        percolateDown(1);
+        return min;
+    }
+
+    private void percolateDown(int key) {
+        int parent = key, child;
+        boolean hasNext = true;
+
+        while (hasNext) {
+            child = getLesserChild(parent);
+
+            if (child > elementCount)
+                hasNext = false;
+            else if (distanceOf(child) < distanceOf(parent))
+                swap(child, parent);
+            else
+                hasNext = false;
+
+            parent = child;
+        }
+    }
+
+    private int getLesserChild(int parent) {
+        int leftChild = 2 * parent;
+        int rightChild = 2 * parent + 1;
+
+        if (distanceOf(leftChild) < distanceOf(rightChild))
+            return leftChild;
+
+        return rightChild;
+    }
+
+    public void percolateUp(int key) {
+        int child = key;
+        int parent = key / 2;
+        boolean hasNext = true;
+
+        while (hasNext) {
+            if (distanceOf(child) < distanceOf(parent)) {
+                swap(child, parent);
+                if (parent == 1)
+                    hasNext = false;
+            } else
+                hasNext = false;
+
+            child = parent;
+            parent /= 2;
+        }
+    }
+
+    private int distanceOf(int x) {
+        if (x > elementCount)
+            return Integer.MAX_VALUE;
+
+        return heap[x].distance;
+    }
+
+    private void swap(int x, int y) {
+        Vertex temp = heap[x];
+        heap[x] = heap[y];
+        heap[y] = temp;
+    }
+
+    public boolean isEmpty() {
+        return elementCount == 0;
     }
 
     public void print() {
@@ -61,87 +150,70 @@ class MyPriorityQueue {
 }
 
 class Graph {
-    // index + 1 represents the vertex number, which has an out degree for every edge
-    // it has connected to another vertex.
-    private OutDegree[] adjacencyList;
     private Vertex[] vertices;
     private MyPriorityQueue pq;
 
     Graph(int numOfVertices, int sourceVertex) {
-        adjacencyList = new OutDegree[numOfVertices];
-        vertices = new Vertex[numOfVertices];
-
+        vertices = new Vertex[numOfVertices + 1]; // capacity + 1 so vertex id == index
         Vertex source = new Vertex(sourceVertex, 0);
-        vertices[source.id - 1] = source;
+        vertices[sourceVertex] = source;
         pq = new MyPriorityQueue(numOfVertices, source);
     }
 
-    public void addEdge(int fromVertex, int toVertex, int weight) {
-        Vertex fromV = new Vertex(fromVertex);
-        Vertex toV = new Vertex(toVertex);
-        addVertex(fromV);
-        addVertex(toV);
-
+    public void addEdge(int fromVertexID, int toVertexID, int weight) {
+        Vertex fromV = new Vertex(fromVertexID);
+        Vertex toV = new Vertex(toVertexID);
         Edge e = new Edge(fromV, toV, weight);
-        setEdgeAdjacentTo(fromVertex, e);
-        setEdgeAdjacentTo(toVertex, e);
+
+        addVertexAndEdge(fromV, e);
+        addVertexAndEdge(toV, e);
     }
 
-    private void addVertex(Vertex v) {
-        if (vertices[v.id - 1] == null) {
-            vertices[v.id - 1] = v;
+    private void addVertexAndEdge(Vertex v, Edge e) {
+        if (vertices[v.id] == null) {
+            vertices[v.id] = v;
             pq.addVertex(v);
         }
-    }
-
-    private void setEdgeAdjacentTo(int vertexID, Edge e) {
-        if (!hasNeighbors(vertexID))
-            adjacencyList[vertexID - 1] = new OutDegree(e);
-        else
-            placeByWeight(vertexID, e);
-    }
-
-    private boolean hasNeighbors(int vertexID) {
-        return adjacencyList[vertexID - 1] != null;
-    }
-
-    private void placeByWeight(int vertexID, Edge e) {
-        OutDegree current = adjacencyList[vertexID - 1];
-        OutDegree previous = current;
-
-        if (e.weight < current.edge.weight)
-            adjacencyList[vertexID - 1] = new OutDegree(e, current);
-        else {
-            while (edgeWeightIsGreater(e, current)) {
-                previous = current;
-                current = current.next;
-            }
-            previous.next = new OutDegree(e, current);
-        }
-    }
-
-    private boolean edgeWeightIsGreater(Edge e, OutDegree current) {
-        return current != null && e.weight > current.edge.weight;
-    }
-
-    public OutDegree getNeighbors(int vertex) {
-        return adjacencyList[vertex - 1];
+        vertices[v.id].addEdge(e);
     }
 
     public MyPriorityQueue getPriorityQueue() {
         return pq;
     }
+
+    public Vertex getVertex(int v) {
+        return vertices[v];
+    }
 }
 
 class PathFinder {
-    Graph graph;
+    Graph g;
+    MyPriorityQueue pq;
 
     PathFinder(Graph g) {
-        graph = g;
+        this.g = g;
+        pq = g.getPriorityQueue();
+        findShortestPaths();
     }
 
-    public void printShortestPaths() {
-        System.out.println("1 1 0");
+    private void findShortestPaths() {
+        while (!pq.isEmpty()) {
+            Vertex min = pq.deleteMin();
+            OutDegree o = g.getVertex(min.id).getOutDegrees();
+            while (o != null) {
+                relax(min, o);
+                o = o.next;
+            }
+        }
+    }
+
+    private void relax(Vertex min, OutDegree o) {
+        Vertex neighbor = o.edge.getNeighbor(min.id);
+        if (neighbor.distance > min.distance + o.edge.weight) {
+            neighbor.distance = min.distance + o.edge.weight;
+            pq.percolateUp(neighbor.heapKey);
+            neighbor.previous = min;
+        }
     }
 }
 
