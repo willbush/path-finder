@@ -6,17 +6,22 @@ class Vertex {
         this.id = id;
         distance = Integer.MAX_VALUE;
     }
+
+    Vertex(int id, int distance) {
+        this.id = id;
+        this.distance = distance;
+    }
 }
 
 class Edge {
-    int vertexA, vertexB, weight;
-    Vertex neighbor;
+    Vertex left, right;
+    int weight;
 
-    Edge(int vertexA, int vertexB, int weight) {
-        this.vertexA = vertexA;
-        this.vertexB = vertexB;
+
+    Edge(Vertex left, Vertex right, int weight) {
+        this.left = left;
+        this.right = right;
         this.weight = weight;
-        neighbor = new Vertex(vertexB);
     }
 }
 
@@ -35,40 +40,79 @@ class OutDegree {
     }
 }
 
+class MyPriorityQueue {
+    private int index = 1;
+    private Vertex[] heap;
+
+    MyPriorityQueue(int capacity, Vertex min) {
+        heap = new Vertex[capacity + 1];
+        heap[index++] = min;
+    }
+
+    public void addVertex(Vertex v) {
+        heap[index++] = v;
+    }
+
+    public void print() {
+        for (Vertex v : heap)
+            if (v != null)
+                System.out.println(v.distance);
+    }
+}
+
 class Graph {
     // index + 1 represents the vertex number, which has an out degree for every edge
     // it has connected to another vertex.
     private OutDegree[] adjacencyList;
+    private Vertex[] vertices;
+    private MyPriorityQueue pq;
 
-    Graph(int maxNodes, int sourceVertex) {
-        adjacencyList = new OutDegree[maxNodes];
-        Edge circularEdge = new Edge(sourceVertex, sourceVertex, 0);
-        adjacencyList[sourceVertex - 1] = new OutDegree(circularEdge);
+    Graph(int numOfVertices, int sourceVertex) {
+        adjacencyList = new OutDegree[numOfVertices];
+        vertices = new Vertex[numOfVertices];
+
+        Vertex source = new Vertex(sourceVertex, 0);
+        vertices[source.id - 1] = source;
+        pq = new MyPriorityQueue(numOfVertices, source);
     }
 
-    public void addEdge(Edge e) {
-        placeEdge(e.vertexA - 1, e);
-        placeEdge(e.vertexB - 1, e);
+    public void addEdge(int fromVertex, int toVertex, int weight) {
+        Vertex fromV = new Vertex(fromVertex);
+        Vertex toV = new Vertex(toVertex);
+        addVertex(fromV);
+        addVertex(toV);
+
+        Edge e = new Edge(fromV, toV, weight);
+        setEdgeAdjacentTo(fromVertex, e);
+        setEdgeAdjacentTo(toVertex, e);
     }
 
-    private void placeEdge(int vertex, Edge e) {
-        if (!hasNeighbors(vertex))
-            adjacencyList[vertex] = new OutDegree(e);
+    private void addVertex(Vertex v) {
+        if (vertices[v.id - 1] == null) {
+            vertices[v.id - 1] = v;
+            pq.addVertex(v);
+        }
+    }
+
+    private void setEdgeAdjacentTo(int vertexID, Edge e) {
+        if (!hasNeighbors(vertexID))
+            adjacencyList[vertexID - 1] = new OutDegree(e);
         else
-            placeByWeight(vertex, e);
+            placeByWeight(vertexID, e);
     }
 
-    private boolean hasNeighbors(int vertex) {
-        return adjacencyList[vertex] != null;
+    private boolean hasNeighbors(int vertexID) {
+        return adjacencyList[vertexID - 1] != null;
     }
 
-    private void placeByWeight(int vertex, Edge e) {
-        OutDegree current = adjacencyList[vertex];
+    private void placeByWeight(int vertexID, Edge e) {
+        OutDegree current = adjacencyList[vertexID - 1];
         OutDegree previous = current;
+
         if (e.weight < current.edge.weight)
-            adjacencyList[vertex] = new OutDegree(e, current);
+            adjacencyList[vertexID - 1] = new OutDegree(e, current);
         else {
-            while (edgeWeightIsGreaterThanCurrent(e, current)) {
+            while (edgeWeightIsGreater(e, current)) {
                 previous = current;
                 current = current.next;
             }
@@ -76,12 +120,16 @@ class Graph {
         }
     }
 
-    private boolean edgeWeightIsGreaterThanCurrent(Edge e, OutDegree current) {
+    private boolean edgeWeightIsGreater(Edge e, OutDegree current) {
         return current != null && e.weight > current.edge.weight;
     }
 
     public OutDegree getNeighbors(int vertex) {
         return adjacencyList[vertex - 1];
+    }
+
+    public MyPriorityQueue getPriorityQueue() {
+        return pq;
     }
 }
 
