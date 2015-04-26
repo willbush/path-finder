@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 class Vertex {
     private OutDegree outDegrees;
     private OutDegree tail;
@@ -270,4 +272,59 @@ class PathFinder {
 }
 
 public class WIBU4 {
+    private Scanner input;
+    private Graph g;
+
+    public WIBU4(java.io.InputStream in) {
+        input = new Scanner(in);
+    }
+
+    public void run() {
+        initializeWithFirstLine();
+        String[] tokens;
+        tokens = input.nextLine().split(" ");
+
+        while (inputHasNext(tokens)) {
+            processEdges(tokens);
+            tokens = input.nextLine().split(" ");
+        }
+        runPathFinder();
+    }
+
+    private void initializeWithFirstLine() {
+        String[] tokens = input.nextLine().split(" ");
+        int numOfVertices = Integer.valueOf(tokens[0]);
+        int sourceVertex = Integer.valueOf(tokens[1]);
+
+        g = new Graph(numOfVertices, sourceVertex);
+    }
+
+    /*
+    Input has next until input is terminated with 3 zeros (0 0 0).
+     */
+    private boolean inputHasNext(String[] tokens) {
+        for (String s : tokens)
+            if (!s.equals("0"))
+                return true;
+
+        return false;
+    }
+
+    private void processEdges(String[] tokens) {
+        int fromVertexID = Integer.valueOf(tokens[0]);
+        int toVertexID = Integer.valueOf(tokens[1]);
+        int weight = Integer.valueOf(tokens[2]);
+
+        g.addEdge(fromVertexID, toVertexID, weight);
+    }
+
+    private void runPathFinder() {
+        PathFinder pf = new PathFinder(g);
+        pf.findShortestPaths();
+    }
+
+    public static void main(String[] args) {
+        WIBU4 program = new WIBU4(System.in);
+        program.run();
+    }
 }
