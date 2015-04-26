@@ -30,3 +30,4 @@
 9 13
 9 14
 12 13
+Minimal spanning tree length = 169

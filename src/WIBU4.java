@@ -6,7 +6,7 @@ class Vertex {
     private int id;
     Vertex previous;
     int distance, heapKey;
-    public boolean isKnown;
+    boolean isKnown;
 
     Vertex(int id) {
         this.id = id;

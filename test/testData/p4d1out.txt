@@ -12,3 +12,4 @@
 4 5
 4 7
 6 7
+Minimal spanning tree length = 12
