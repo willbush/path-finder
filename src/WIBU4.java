@@ -209,8 +209,10 @@ class PathFinder {
 
     private void relax(Vertex min, OutDegree o) {
         Vertex neighbor = o.edge.getNeighbor(min.id);
-        if (neighbor.distance > min.distance + o.edge.weight) {
-            neighbor.distance = min.distance + o.edge.weight;
+        int currentDistance = min.distance + o.edge.weight;
+
+        if (neighbor.distance > currentDistance) {
+            neighbor.distance = currentDistance;
             pq.percolateUp(neighbor.heapKey);
             neighbor.previous = min;
         }
