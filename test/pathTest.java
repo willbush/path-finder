@@ -69,10 +69,4 @@ public class pathTest {
         g.getVertex(v).distance = d;
         pq.percolateUp(g.getVertex(v).heapKey);
     }
-
-    @Test
-    public void canPathFind() {
-        PathFinder pf = new PathFinder(g);
-        pf.findShortestPaths();
-    }
 }
