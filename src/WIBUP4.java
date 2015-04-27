@@ -104,8 +104,11 @@ class OutDegree {
 class MyPriorityQueue {
     private int elementCount, index = 1;
     private Vertex[] heap;
+    private final int minID, capacity;
 
     MyPriorityQueue(int capacity, Vertex min) {
+        this.capacity = capacity;
+        minID = min.getID();
         elementCount = capacity;
         heap = new Vertex[capacity + 1];
         min.heapKey = index;
@@ -119,8 +122,7 @@ class MyPriorityQueue {
 
     public Vertex deleteMin() {
         Vertex min = heap[1];
-        heap[1] = heap[elementCount];
-        heap[elementCount--] = null;
+        swap(1, elementCount--);
         percolateDown(1);
         return min;
     }
@@ -156,7 +158,7 @@ class MyPriorityQueue {
     public void percolateUp(int key) {
         int child = key;
         int parent = key / 2;
-        boolean hasNext = true;
+        boolean hasNext = (parent > 0);
 
         while (hasNext) {
             if (distanceOf(child) < distanceOf(parent)) {
@@ -189,6 +191,26 @@ class MyPriorityQueue {
 
     public boolean isEmpty() {
         return elementCount == 0;
+    }
+
+    /*
+    resets the heap to its original state after all items were added.
+     */
+    public void reset() {
+        int minHeapKey = -1;
+        elementCount = capacity;
+        for (int v = 1; v < capacity + 1; v++) {
+            if (heap[v] != null) {
+                heap[v].isKnown = false;
+                heap[v].previous = null;
+                if (heap[v].getID() == minID) {
+                    minHeapKey = heap[v].heapKey;
+                    heap[v].distance = 0;
+                } else
+                    heap[v].distance = Integer.MAX_VALUE;
+            }
+        }
+        swap(1, minHeapKey); // reset min vertex (i.e. the source) to top of the heap
     }
 }
 
@@ -404,9 +426,11 @@ public class WIBUP4 {
     }
 
     private void runPathFinder() {
-//        PathFinder pf = new PathFinder(g);
+        PathFinder pf = new PathFinder(g);
         TreeSpanner ts = new TreeSpanner(g);
-//        pf.findShortestPaths();
+        pf.findShortestPaths();
+        g.getPriorityQueue().reset();
+        System.out.println();
         ts.findMinimumSpanningTree();
     }
 
