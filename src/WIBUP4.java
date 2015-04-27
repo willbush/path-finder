@@ -1,11 +1,12 @@
 import java.util.Scanner;
 
 class Vertex {
-    private OutDegree outDegrees;
+    private OutDegree outDegrees; // a singly linked list of outDegrees for the vertex
     private int id;
-    Vertex previous;
-    int distance, heapKey;
-    boolean isKnown;
+    Vertex previous; // previous is used by Dijkstra's and Prim's algorithms
+    // distance is used by both Dijkstra and Prim and is the key in the heap which has priority.
+    int distance, heapKey; // heapKey is the current location of the vertex in the heap.
+    boolean isKnown; // used to flag that Dijkstra or Prim has added it to the known set.
 
     Vertex(int id) {
         this.id = id;
@@ -26,7 +27,7 @@ class Vertex {
 
     /*
     Inserting by ID from least to greatest instead of just inserting at the tail since
-    Kruskal's spanning tree output requires sorted neighbors.
+    the spec output requires sorted neighbors.
      */
     private void placeByID(Edge e) {
         OutDegree current = outDegrees;
@@ -56,31 +57,13 @@ class Vertex {
     }
 }
 
-class Edge {
-    private Vertex left, right;
-    private int weight;
-    boolean isMinimumSpanning;
-
-    Edge(Vertex left, Vertex right, int weight) {
-        this.left = left;
-        this.right = right;
-        this.weight = weight;
-    }
-
-    public Vertex getNeighbor(int vertexID) {
-        if (right.getID() == vertexID)
-            return left;
-        else
-            return right;
-    }
-
-    public int getWeight() {
-        return weight;
-    }
-}
-
+/**
+ * Each vertex has some number of outDegrees. Each out degree has an edge which connects
+ * the two vertices. The out degree abstraction allows vertices to be stored in the
+ * graph as an adjacency list.
+ */
 class OutDegree {
-    OutDegree next;
+    OutDegree next; // next outDegree of the vertex
     Edge edge;
 
     OutDegree(Edge e) {
@@ -93,8 +76,31 @@ class OutDegree {
     }
 }
 
+class Edge {
+    private Vertex from, to;
+    private int weight;
+    boolean isMinimumSpanning;
+
+    Edge(Vertex from, Vertex to, int weight) {
+        this.from = from;
+        this.to = to;
+        this.weight = weight;
+    }
+
+    public Vertex getNeighbor(int vertexID) {
+        if (to.getID() == vertexID)
+            return from;
+        else
+            return to;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+}
+
 /**
- * This priority queue is implemented using a min binary heap. Since every
+ * This priority queue is implemented using a binary min heap. Since every
  * graph starts out with a known vertex with minimum distance (the source)
  * and all other vertices are MAX_INT, buildHeap is not necessary. The heap
  * is built a vertex at a time as edges are added to the adjacency list.
@@ -108,9 +114,10 @@ class MyPriorityQueue {
 
     MyPriorityQueue(int capacity, Vertex min) {
         this.capacity = capacity;
-        minID = min.getID();
         elementCount = capacity;
         heap = new Vertex[capacity + 1];
+
+        minID = min.getID();
         min.heapKey = index;
         heap[index++] = min;
     }
@@ -199,6 +206,7 @@ class MyPriorityQueue {
     public void reset() {
         int minHeapKey = -1;
         elementCount = capacity;
+
         for (int v = 1; v < capacity + 1; v++) {
             if (heap[v] != null) {
                 heap[v].isKnown = false;
@@ -228,6 +236,9 @@ class Graph {
         pq = new MyPriorityQueue(numOfVertices, source);
     }
 
+    /*
+    addEdge is used to build the graph and the heap at the same time.
+     */
     public void addEdge(int fromVertexID, int toVertexID, int weight) {
         Vertex fromV = getExistingOrNewVertex(toVertexID);
         Vertex toV = getExistingOrNewVertex(fromVertexID);
@@ -268,12 +279,14 @@ class Graph {
         for (int v = 1; v < vertices.length; v++) {
             Vertex current = vertices[v].previous;
             StringBuilder sb = new StringBuilder();
+
             while (current != null) {
                 sb.insert(0, current.getID() + " ");
                 current = current.previous;
             }
             if (v == sourceVertex)
                 sb.insert(0, v + " ");
+
             System.out.print(sb.toString() + v + " " + vertices[v].distance);
             System.out.println();
         }
@@ -284,9 +297,8 @@ class Graph {
             OutDegree o = vertices[v].getOutDegrees();
 
             while (o != null) {
-                Vertex neighbor = o.edge.getNeighbor(v);
                 if (o.edge.isMinimumSpanning) {
-                    System.out.println(v + " " + neighbor.getID());
+                    System.out.println(v + " " + o.edge.getNeighbor(v).getID());
                     o.edge.isMinimumSpanning = false;
                 }
                 o = o.next;
@@ -317,6 +329,9 @@ class PathFinder {
                 o = o.next;
             }
         }
+    }
+
+    public void printResults() {
         g.printDistances();
     }
 
@@ -344,6 +359,9 @@ class TreeSpanner {
         pq = g.getPriorityQueue();
     }
 
+    /**
+     * finds the minimum spanning tree using Prim's algorithm
+     */
     public void findMinimumSpanningTree() {
         while (!pq.isEmpty()) {
             Vertex min = pq.deleteMin();
@@ -354,21 +372,20 @@ class TreeSpanner {
                 o = o.next;
             }
         }
-        g.printSpanningTree();
-        System.out.println("Minimal spanning tree length = " + totalSpanningTreeLength);
     }
 
     private void relax(Vertex min, OutDegree o) {
         Vertex neighbor = o.edge.getNeighbor(min.getID());
+        int weight = o.edge.getWeight();
+
         if (neighbor.isKnown) {
             if (neighborSharesSpanningEdge(min, neighbor)) {
                 o.edge.isMinimumSpanning = true;
-                totalSpanningTreeLength += o.edge.getWeight();
+                totalSpanningTreeLength += weight;
             }
             return;
         }
 
-        int weight = o.edge.getWeight();
         if (weight < neighbor.distance) {
             neighbor.distance = weight;
             pq.percolateUp(neighbor.heapKey);
@@ -378,6 +395,11 @@ class TreeSpanner {
 
     private boolean neighborSharesSpanningEdge(Vertex min, Vertex neighbor) {
         return min.previous != null && min.previous.getID() == neighbor.getID();
+    }
+
+    public void printResults() {
+        g.printSpanningTree();
+        System.out.println("Minimal spanning tree length = " + totalSpanningTreeLength);
     }
 }
 
@@ -395,10 +417,10 @@ public class WIBUP4 {
         tokens = input.nextLine().split(" ");
 
         while (inputHasNext(tokens)) {
-            processEdges(tokens);
+            addEdge(tokens);
             tokens = input.nextLine().split(" ");
         }
-        runPathFinder();
+        runDijkstraAndPrim();
     }
 
     private void initializeWithFirstLine() {
@@ -420,7 +442,7 @@ public class WIBUP4 {
         return false;
     }
 
-    private void processEdges(String[] tokens) {
+    private void addEdge(String[] tokens) {
         int fromVertexID = Integer.valueOf(tokens[0]);
         int toVertexID = Integer.valueOf(tokens[1]);
         int weight = Integer.valueOf(tokens[2]);
@@ -428,13 +450,16 @@ public class WIBUP4 {
         g.addEdge(fromVertexID, toVertexID, weight);
     }
 
-    private void runPathFinder() {
+    private void runDijkstraAndPrim() {
         PathFinder pf = new PathFinder(g);
-        TreeSpanner ts = new TreeSpanner(g);
         pf.findShortestPaths();
-        g.getPriorityQueue().reset();
+        pf.printResults();
         System.out.println();
+
+        g.getPriorityQueue().reset();
+        TreeSpanner ts = new TreeSpanner(g);
         ts.findMinimumSpanningTree();
+        ts.printResults();
     }
 
     public static void main(String[] args) {
