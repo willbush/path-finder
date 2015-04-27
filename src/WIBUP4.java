@@ -5,7 +5,7 @@ class Vertex {
     private int id;
     Vertex previous; // previous is used by Dijkstra's and Prim's algorithms
     // distance is used by both Dijkstra and Prim and is the key in the heap which has priority.
-    int distance, heapKey; // heapKey is the current location of the vertex in the heap.
+    int distance, heapIndex; // heapIndex is the current location of the vertex in the heap.
     boolean isKnown; // used to flag that Dijkstra or Prim has added it to the known set.
 
     Vertex(int id) {
@@ -118,12 +118,12 @@ class MyPriorityQueue {
         heap = new Vertex[capacity + 1];
 
         minID = min.getID();
-        min.heapKey = index;
+        min.heapIndex = index;
         heap[index++] = min;
     }
 
     public void addVertex(Vertex v) {
-        v.heapKey = index;
+        v.heapIndex = index;
         heap[index++] = v;
     }
 
@@ -134,8 +134,8 @@ class MyPriorityQueue {
         return min;
     }
 
-    private void percolateDown(int key) {
-        int parent = key, child;
+    private void percolateDown(int index) {
+        int parent = index, child;
         boolean hasNext = true;
 
         while (hasNext) {
@@ -162,9 +162,9 @@ class MyPriorityQueue {
         return rightChild;
     }
 
-    public void percolateUp(int key) {
-        int child = key;
-        int parent = key / 2;
+    public void percolateUp(int index) {
+        int child = index;
+        int parent = index / 2;
         boolean hasNext = (parent > 0);
 
         while (hasNext) {
@@ -192,8 +192,8 @@ class MyPriorityQueue {
         heap[x] = heap[y];
         heap[y] = temp;
 
-        heap[x].heapKey = x;
-        heap[y].heapKey = y;
+        heap[x].heapIndex = x;
+        heap[y].heapIndex = y;
     }
 
     public boolean isEmpty() {
@@ -204,21 +204,19 @@ class MyPriorityQueue {
     resets the heap to its original state after all items were added.
      */
     public void reset() {
-        int minHeapKey = -1;
+        int minIndex = -1;
         elementCount = capacity;
 
-        for (int v = 1; v < capacity + 1; v++) {
-            if (heap[v] != null) {
-                heap[v].isKnown = false;
-                heap[v].previous = null;
-                if (heap[v].getID() == minID) {
-                    minHeapKey = heap[v].heapKey;
-                    heap[v].distance = 0;
-                } else
-                    heap[v].distance = Integer.MAX_VALUE;
-            }
+        for (int v = 1; v < heap.length; v++) {
+            heap[v].isKnown = false;
+            heap[v].previous = null;
+            if (heap[v].getID() == minID) {
+                minIndex = heap[v].heapIndex;
+                heap[v].distance = 0;
+            } else
+                heap[v].distance = Integer.MAX_VALUE;
         }
-        swap(1, minHeapKey); // reset min vertex (i.e. the source) to top of the heap
+        swap(1, minIndex); // reset min vertex (i.e. the source) to top of the heap
     }
 }
 
@@ -343,7 +341,7 @@ class PathFinder {
         int currentDistance = min.distance + o.edge.getWeight();
         if (neighbor.distance > currentDistance) {
             neighbor.distance = currentDistance;
-            pq.percolateUp(neighbor.heapKey);
+            pq.percolateUp(neighbor.heapIndex);
             neighbor.previous = min;
         }
     }
@@ -388,7 +386,7 @@ class TreeSpanner {
 
         if (weight < neighbor.distance) {
             neighbor.distance = weight;
-            pq.percolateUp(neighbor.heapKey);
+            pq.percolateUp(neighbor.heapIndex);
             neighbor.previous = min;
         }
     }

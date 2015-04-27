@@ -67,6 +67,6 @@ public class pathTest {
 
     private void modifyDistance(MyPriorityQueue pq, int v, int d) {
         g.getVertex(v).distance = d;
-        pq.percolateUp(g.getVertex(v).heapKey);
+        pq.percolateUp(g.getVertex(v).heapIndex);
     }
 }
