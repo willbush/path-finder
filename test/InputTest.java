@@ -11,7 +11,7 @@ public class InputTest {
     public void canProcessInput1() throws IOException {
         File input = new File("test/testData/p4d1in.txt");
         InputStream in = new FileInputStream(input);
-        WIBU4 program = new WIBU4(in);
+        WIBUP4 program = new WIBUP4(in);
         program.run();
         System.out.println();
     }
@@ -20,7 +20,7 @@ public class InputTest {
     public void canProcessInput2() throws IOException {
         File input = new File("test/testData/p4d2in.txt");
         InputStream in = new FileInputStream(input);
-        WIBU4 program = new WIBU4(in);
+        WIBUP4 program = new WIBUP4(in);
         program.run();
         System.out.println();
     }
@@ -29,7 +29,7 @@ public class InputTest {
     public void canProcessInput3() throws IOException {
         File input = new File("test/testData/p4d3in.txt");
         InputStream in = new FileInputStream(input);
-        WIBU4 program = new WIBU4(in);
+        WIBUP4 program = new WIBUP4(in);
         program.run();
         System.out.println();
     }

@@ -2,7 +2,6 @@ import java.util.Scanner;
 
 class Vertex {
     private OutDegree outDegrees;
-    private OutDegree tail;
     private int id;
     Vertex previous;
     int distance, heapKey;
@@ -19,13 +18,33 @@ class Vertex {
     }
 
     public void addEdge(Edge e) {
-        if (outDegrees == null) {
+        if (outDegrees == null)
             outDegrees = new OutDegree(e);
-            tail = outDegrees;
-        } else {
-            tail.next = new OutDegree(e);
-            tail = tail.next;
+        else
+            placeByID(e);
+    }
+
+    /*
+    Inserting by ID from least to greatest instead of just inserting at the tail since
+    Kruskal's spanning tree output requires sorted neighbors.
+     */
+    private void placeByID(Edge e) {
+        OutDegree current = outDegrees;
+        OutDegree previous = current;
+
+        if (e.getNeighbor(id).getID() < current.edge.getNeighbor(id).getID())
+            outDegrees = new OutDegree(e, current);
+        else {
+            while (idIsGreaterThanCurrent(e, current)) {
+                previous = current;
+                current = current.next;
+            }
+            previous.next = new OutDegree(e, current);
         }
+    }
+
+    private boolean idIsGreaterThanCurrent(Edge e, OutDegree current) {
+        return current != null && e.getNeighbor(id).getID() > current.edge.getNeighbor(id).getID();
     }
 
     public OutDegree getOutDegrees() {
@@ -40,6 +59,7 @@ class Vertex {
 class Edge {
     private Vertex left, right;
     private int weight;
+    boolean isMinimumSpanning;
 
     Edge(Vertex left, Vertex right, int weight) {
         this.left = left;
@@ -63,8 +83,13 @@ class OutDegree {
     OutDegree next;
     Edge edge;
 
-    OutDegree(Edge edge) {
-        this.edge = edge;
+    OutDegree(Edge e) {
+        edge = e;
+    }
+
+    OutDegree(Edge e, OutDegree next) {
+        edge = e;
+        this.next = next;
     }
 }
 
@@ -175,6 +200,7 @@ class Graph {
     Graph(int numOfVertices, int sourceVertex) {
         this.sourceVertex = sourceVertex;
         vertices = new Vertex[numOfVertices + 1]; // capacity + 1 so vertex id == index
+
         Vertex source = new Vertex(sourceVertex, 0);
         vertices[sourceVertex] = source;
         pq = new MyPriorityQueue(numOfVertices, source);
@@ -230,11 +256,26 @@ class Graph {
             System.out.println();
         }
     }
+
+    public void printSpanningTree() {
+        for (int v = 1; v < vertices.length; v++) {
+            OutDegree o = vertices[v].getOutDegrees();
+
+            while (o != null) {
+                Vertex neighbor = o.edge.getNeighbor(v);
+                if (o.edge.isMinimumSpanning) {
+                    System.out.println(v + " " + neighbor.getID());
+                    o.edge.isMinimumSpanning = false;
+                }
+                o = o.next;
+            }
+        }
+    }
 }
 
 class PathFinder {
-    Graph g;
-    MyPriorityQueue pq;
+    private Graph g;
+    private MyPriorityQueue pq;
 
     PathFinder(Graph g) {
         this.g = g;
@@ -271,11 +312,55 @@ class PathFinder {
     }
 }
 
-public class WIBU4 {
+class TreeSpanner {
+    private Graph g;
+    private MyPriorityQueue pq;
+
+    TreeSpanner(Graph g) {
+        this.g = g;
+        pq = g.getPriorityQueue();
+    }
+
+    public void findMinimumSpanningTree() {
+        while (!pq.isEmpty()) {
+            Vertex min = pq.deleteMin();
+            min.isKnown = true;
+            OutDegree o = g.getVertex(min.getID()).getOutDegrees();
+            while (o != null) {
+                relaxDistance(min, o);
+                o = o.next;
+            }
+        }
+        g.printSpanningTree();
+    }
+
+    private void relaxDistance(Vertex min, OutDegree o) {
+        Vertex neighbor = o.edge.getNeighbor(min.getID());
+        if (neighbor.isKnown) {
+            if (neighborSharesSpanningEdge(min, neighbor))
+                o.edge.isMinimumSpanning = true;
+
+            return;
+        }
+
+        int weight = o.edge.getWeight();
+        if (weight < neighbor.distance) {
+            neighbor.distance = weight;
+            pq.percolateUp(neighbor.heapKey);
+            neighbor.previous = min;
+        }
+    }
+
+    private boolean neighborSharesSpanningEdge(Vertex min, Vertex neighbor) {
+        return min.previous != null && min.previous.getID() == neighbor.getID();
+    }
+}
+
+public class WIBUP4 {
     private Scanner input;
     private Graph g;
 
-    public WIBU4(java.io.InputStream in) {
+    public WIBUP4(java.io.InputStream in) {
         input = new Scanner(in);
     }
 
@@ -319,12 +404,14 @@ public class WIBU4 {
     }
 
     private void runPathFinder() {
-        PathFinder pf = new PathFinder(g);
-        pf.findShortestPaths();
+//        PathFinder pf = new PathFinder(g);
+        TreeSpanner ts = new TreeSpanner(g);
+//        pf.findShortestPaths();
+        ts.findMinimumSpanningTree();
     }
 
     public static void main(String[] args) {
-        WIBU4 program = new WIBU4(System.in);
+        WIBUP4 program = new WIBUP4(System.in);
         program.run();
     }
 }

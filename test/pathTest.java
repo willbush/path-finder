@@ -25,13 +25,13 @@ public class pathTest {
 
     @Test
     public void canAddEdges() {
-        checkNeighbors(1, new int[]{2, 4, 3});
-        checkNeighbors(2, new int[]{1, 5, 4});
-        checkNeighbors(3, new int[]{1, 6, 4});
-        checkNeighbors(4, new int[]{1, 2, 3, 5, 7, 6});
-        checkNeighbors(5, new int[]{2, 7, 4});
-        checkNeighbors(6, new int[]{3, 7, 4});
-        checkNeighbors(7, new int[]{5, 6, 4});
+        checkNeighbors(1, new int[]{2, 3, 4});
+        checkNeighbors(2, new int[]{1, 4, 5});
+        checkNeighbors(3, new int[]{1, 4, 6});
+        checkNeighbors(4, new int[]{1, 2, 3, 5, 6, 7});
+        checkNeighbors(5, new int[]{2, 4, 7});
+        checkNeighbors(6, new int[]{3, 4, 7});
+        checkNeighbors(7, new int[]{4, 5, 6});
     }
 
     private void checkNeighbors(int v, int[] neighbors) {
