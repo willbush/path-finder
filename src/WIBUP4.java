@@ -335,8 +335,9 @@ class PathFinder {
 }
 
 class TreeSpanner {
-    private Graph g;
+    private int totalSpanningTreeLength = 0;
     private MyPriorityQueue pq;
+    private Graph g;
 
     TreeSpanner(Graph g) {
         this.g = g;
@@ -349,19 +350,21 @@ class TreeSpanner {
             min.isKnown = true;
             OutDegree o = g.getVertex(min.getID()).getOutDegrees();
             while (o != null) {
-                relaxDistance(min, o);
+                relax(min, o);
                 o = o.next;
             }
         }
         g.printSpanningTree();
+        System.out.println("Minimal spanning tree length = " + totalSpanningTreeLength);
     }
 
-    private void relaxDistance(Vertex min, OutDegree o) {
+    private void relax(Vertex min, OutDegree o) {
         Vertex neighbor = o.edge.getNeighbor(min.getID());
         if (neighbor.isKnown) {
-            if (neighborSharesSpanningEdge(min, neighbor))
+            if (neighborSharesSpanningEdge(min, neighbor)) {
                 o.edge.isMinimumSpanning = true;
-
+                totalSpanningTreeLength += o.edge.getWeight();
+            }
             return;
         }
 
