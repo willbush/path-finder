@@ -290,18 +290,20 @@ class Graph {
 
     public void printDistances() {
         for (int v = 1; v < vertices.length; v++) {
-            Vertex current = vertices[v].previous;
-            StringBuilder sb = new StringBuilder();
-
-            while (current != null) {
-                sb.insert(0, current.getID() + " ");
-                current = current.previous;
-            }
             if (v == sourceVertex)
-                sb.insert(0, v + " ");
+                System.out.print(vertices[v].getID() + " ");
 
-            System.out.print(sb.toString() + v + " " + vertices[v].distance);
-            System.out.println();
+            recurseToSourceAndPrint(vertices[v]);
+            System.out.println(vertices[v].distance);
+        }
+    }
+
+    private void recurseToSourceAndPrint(Vertex v) {
+        if (v.previous == null) {
+            System.out.print(v.getID() + " ");
+        } else {
+            recurseToSourceAndPrint(v.previous);
+            System.out.print(v.getID() + " ");
         }
     }
 
