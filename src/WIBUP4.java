@@ -119,14 +119,11 @@ class Edge {
 class MyPriorityQueue {
     private int elementCount, index = 1;
     private Vertex[] heap;
-    private final int minID, capacity;
 
     MyPriorityQueue(int capacity, Vertex min) {
-        this.capacity = capacity;
         elementCount = capacity;
         heap = new Vertex[capacity + 1];
 
-        minID = min.getID();
         min.heapIndex = index;
         heap[index++] = min;
     }
@@ -207,25 +204,6 @@ class MyPriorityQueue {
 
     public boolean isEmpty() {
         return elementCount == 0;
-    }
-
-    /*
-    resets the heap to its original state after all items were added.
-     */
-    public void reset() {
-        int minIndex = -1;
-        elementCount = capacity;
-
-        for (int v = 1; v < heap.length; v++) {
-            heap[v].isKnown = false;
-            heap[v].previous = null;
-            if (heap[v].getID() == minID) {
-                minIndex = heap[v].heapIndex;
-                heap[v].distance = 0;
-            } else
-                heap[v].distance = Integer.MAX_VALUE;
-        }
-        swap(1, minIndex); // reset min vertex (i.e. the source) to top of the heap
     }
 }
 
@@ -358,13 +336,10 @@ class UnionFind {
     of that negative number represents the number of vertices connected to that root through unions.
      */
     private int[] sets;
-    private int setsRemaining;
-
 
     public UnionFind(int size) {
         if (size > 0) {
             sets = new int[size + 1];
-            setsRemaining = size;
             initializeSets();
         } else
             throw new IllegalArgumentException("size must be greater than zero");
@@ -405,7 +380,6 @@ class UnionFind {
         if (childRoot != parentRoot) {
             sets[parentRoot] += sets[childRoot];
             sets[childRoot] = parentRoot;
-            setsRemaining--;
         }
     }
 
@@ -418,6 +392,7 @@ class UnionFind {
 class PathFinder {
     private Graph g;
     private MyPriorityQueue pq;
+    private int totalSpanningTreeLength = 0;
 
     PathFinder(Graph g) {
         this.g = g;
@@ -440,10 +415,6 @@ class PathFinder {
         }
     }
 
-    public void printResults() {
-        g.printDistances();
-    }
-
     private void relax(Vertex min, OutDegree o) {
         Vertex neighbor = o.edge.getNeighbor(min.getID());
         if (neighbor.isKnown)
@@ -456,61 +427,11 @@ class PathFinder {
             neighbor.previous = min;
         }
     }
-}
-
-class TreeSpanner {
-    private int totalSpanningTreeLength = 0;
-    private MyPriorityQueue pq;
-    private Graph g;
-
-    TreeSpanner(Graph g) {
-        this.g = g;
-        pq = g.getPriorityQueue();
-    }
-
-    /**
-     * finds the minimum spanning tree using Prim's algorithm
-     */
-    public void findMinimumSpanningTree() {
-        while (!pq.isEmpty()) {
-            Vertex min = pq.deleteMin();
-            min.isKnown = true;
-            OutDegree o = g.getVertex(min.getID()).getOutDegrees();
-
-            while (o != null) {
-                relax(min, o);
-                o = o.next;
-            }
-        }
-    }
-
-    private void relax(Vertex min, OutDegree o) {
-        Vertex neighbor = o.edge.getNeighbor(min.getID());
-        int weight = o.edge.getWeight();
-
-        if (neighbor.isKnown) {
-            if (neighborSharesSpanningEdge(min, neighbor)) {
-                o.edge.isMinimumSpanning = true;
-                totalSpanningTreeLength += weight;
-            }
-            return;
-        }
-
-        if (weight < neighbor.distance) {
-            neighbor.distance = weight;
-            pq.percolateUp(neighbor.heapIndex);
-            neighbor.previous = min;
-        }
-    }
-
-    private boolean neighborSharesSpanningEdge(Vertex min, Vertex neighbor) {
-        return min.previous != null && min.previous.getID() == neighbor.getID();
-    }
 
     /**
      * finds the minimum spanning tree using Kruskal's algorithm
      */
-    public void findMinimumSpanningTree2() {
+    public void findMinimumSpanningTree() {
         UnionFind u = new UnionFind(g.getCapacity());
         Edge e = g.getSortedEdges();
 
@@ -528,6 +449,8 @@ class TreeSpanner {
     }
 
     public void printResults() {
+        g.printDistances();
+        System.out.println();
         g.printSpanningTree();
         System.out.println("Minimal spanning tree length = " + totalSpanningTreeLength);
     }
@@ -583,13 +506,8 @@ public class WIBUP4 {
     private void runDijkstraAndPrim() {
         PathFinder pf = new PathFinder(g);
         pf.findShortestPaths();
+        pf.findMinimumSpanningTree();
         pf.printResults();
-        System.out.println();
-
-        g.getPriorityQueue().reset();
-        TreeSpanner ts = new TreeSpanner(g);
-        ts.findMinimumSpanningTree2();
-        ts.printResults();
     }
 
     public static void main(String[] args) {
