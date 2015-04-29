@@ -77,26 +77,34 @@ class OutDegree {
 }
 
 class Edge {
-    private Vertex from, to;
+    private Vertex left, right;
     private int weight;
     Edge next;
     boolean isMinimumSpanning;
 
-    Edge(Vertex from, Vertex to, int weight) {
-        this.from = from;
-        this.to = to;
+    Edge(Vertex left, Vertex right, int weight) {
+        this.left = left;
+        this.right = right;
         this.weight = weight;
     }
 
     public Vertex getNeighbor(int vertexID) {
-        if (to.getID() == vertexID)
-            return from;
+        if (right.getID() == vertexID)
+            return left;
         else
-            return to;
+            return right;
     }
 
     public int getWeight() {
         return weight;
+    }
+
+    public int getLeftID() {
+        return left.getID();
+    }
+
+    public int getRightID() {
+        return right.getID();
     }
 }
 
@@ -225,9 +233,11 @@ class Graph {
     private Vertex[] vertices;
     private MyPriorityQueue pq;
     private int sourceVertex;
-    private Edge head;
+    private int capacity;
+    private Edge sortedEdges;
 
     Graph(int numOfVertices, int sourceVertex) {
+        capacity = numOfVertices;
         this.sourceVertex = sourceVertex;
         vertices = new Vertex[numOfVertices + 1]; // capacity + 1 so vertex id == index
 
@@ -250,26 +260,26 @@ class Graph {
     }
 
     private void addToSortedEdgeList(Edge e) {
-        if (head == null)
-            head = e;
+        if (sortedEdges == null)
+            sortedEdges = e;
         else
             placeByWeight(e);
     }
 
     private void placeByWeight(Edge e) {
-        Edge current = e;
+        Edge current = sortedEdges;
         Edge previous = current;
 
-        if (e.getWeight() < current.getWeight()) {
-            head = e;
-            head.next = current;
+        if (e.getWeight() <= sortedEdges.getWeight()) {
+            e.next = sortedEdges;
+            sortedEdges = e;
         } else {
-            while (e.getWeight() > current.getWeight()) {
+            while (current != null && e.getWeight() > current.getWeight()) {
                 previous = current;
                 current = current.next;
             }
+            e.next = current;
             previous.next = e;
-            previous.next.next = current;
         }
     }
 
@@ -330,6 +340,14 @@ class Graph {
             }
         }
     }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public Edge getSortedEdges() {
+        return sortedEdges;
+    }
 }
 
 class UnionFind {
@@ -341,13 +359,11 @@ class UnionFind {
      */
     private int[] sets;
     private int setsRemaining;
-    private int rootOfLastUnion;
 
 
     public UnionFind(int size) {
         if (size > 0) {
-            rootOfLastUnion = 0;
-            sets = new int[size];
+            sets = new int[size + 1];
             setsRemaining = size;
             initializeSets();
         } else
@@ -390,27 +406,11 @@ class UnionFind {
             sets[parentRoot] += sets[childRoot];
             sets[childRoot] = parentRoot;
             setsRemaining--;
-            rootOfLastUnion = parentRoot;
         }
-    }
-
-    public void printLastUnionRootAndSize() {
-        System.out.println(rootOfLastUnion + " " + getTotalMembers(rootOfLastUnion));
     }
 
     private int getTotalMembers(int root) {
         return -sets[root];
-    }
-
-    public void printSets() {
-        for (int value : sets)
-            System.out.print(value + " ");
-
-        System.out.println();
-    }
-
-    public int getSetsRemaining() {
-        return setsRemaining;
     }
 }
 
@@ -432,6 +432,7 @@ class PathFinder {
             Vertex min = pq.deleteMin();
             min.isKnown = true;
             OutDegree o = g.getVertex(min.getID()).getOutDegrees();
+
             while (o != null) {
                 relax(min, o);
                 o = o.next;
@@ -475,6 +476,7 @@ class TreeSpanner {
             Vertex min = pq.deleteMin();
             min.isKnown = true;
             OutDegree o = g.getVertex(min.getID()).getOutDegrees();
+
             while (o != null) {
                 relax(min, o);
                 o = o.next;
@@ -503,6 +505,26 @@ class TreeSpanner {
 
     private boolean neighborSharesSpanningEdge(Vertex min, Vertex neighbor) {
         return min.previous != null && min.previous.getID() == neighbor.getID();
+    }
+
+    /**
+     * finds the minimum spanning tree using Kruskal's algorithm
+     */
+    public void findMinimumSpanningTree2() {
+        UnionFind u = new UnionFind(g.getCapacity());
+        Edge e = g.getSortedEdges();
+
+        while (e != null) {
+            int x = e.getLeftID();
+            int y = e.getRightID();
+
+            if (u.find(x) != u.find(y)) {
+                e.isMinimumSpanning = true;
+                u.union(x, y);
+                totalSpanningTreeLength += e.getWeight();
+            }
+            e = e.next;
+        }
     }
 
     public void printResults() {
@@ -566,7 +588,7 @@ public class WIBUP4 {
 
         g.getPriorityQueue().reset();
         TreeSpanner ts = new TreeSpanner(g);
-        ts.findMinimumSpanningTree();
+        ts.findMinimumSpanningTree2();
         ts.printResults();
     }
 
