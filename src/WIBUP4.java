@@ -299,12 +299,11 @@ class Graph {
     }
 
     private void recurseToSourceAndPrint(Vertex v) {
-        if (v.previous == null) {
-            System.out.print(v.getID() + " ");
-        } else {
-            recurseToSourceAndPrint(v.previous);
-            System.out.print(v.getID() + " ");
-        }
+        if (v == null)
+            return;
+
+        recurseToSourceAndPrint(v.previous);
+        System.out.print(v.getID() + " ");
     }
 
     public void printSpanningTree() {
