@@ -2,11 +2,11 @@ import java.util.Scanner;
 
 class Vertex {
     private OutDegree outDegrees; // a singly linked list of outDegrees for the vertex
-    private int id;
-    Vertex previous; // previous is used by Dijkstra's and Prim's algorithms
-    // distance is used by both Dijkstra and Prim and is the key in the heap which has priority.
-    int distance, heapIndex; // heapIndex is the current location of the vertex in the heap.
-    boolean isKnown; // used to flag that Dijkstra or Prim has added it to the known set.
+    private int id; // vertices are identified by the set of natural numbers.
+    Vertex previous; // previous vertex Dijkstra has visited
+    int distance; // distance from the source vertex (sum of edge weights this and source).
+    int heapIndex; // heapIndex is the current location of the vertex in the heap.
+    boolean isKnown; // used to flag that Dijkstra has added it to the known set.
 
     Vertex(int id) {
         this.id = id;
@@ -27,7 +27,7 @@ class Vertex {
 
     /*
     Inserting by ID from least to greatest instead of just inserting at the tail since
-    the spec output requires sorted neighbors.
+    the Kruskal output requires sorted neighbors.
      */
     private void placeByID(Edge e) {
         OutDegree current = outDegrees;
@@ -79,7 +79,7 @@ class OutDegree {
 class Edge {
     private Vertex left, right;
     private int weight;
-    Edge next;
+    Edge next; // next sorted (by weight) edge
     boolean isMinimumSpanning;
 
     Edge(Vertex left, Vertex right, int weight) {
@@ -212,7 +212,7 @@ class Graph {
     private MyPriorityQueue pq;
     private int sourceVertex;
     private int capacity;
-    private Edge sortedEdges;
+    private Edge sortedEdges; // singly linked list of sorted edges for Kruskal's MST algorithm.
 
     Graph(int numOfVertices, int sourceVertex) {
         capacity = numOfVertices;
@@ -237,6 +237,13 @@ class Graph {
         addVertexAndEdge(toV, e);
     }
 
+    private Vertex getExistingOrNewVertex(int v) {
+        if (vertexExist(v))
+            return vertices[v];
+        else
+            return new Vertex(v);
+    }
+
     private void addToSortedEdgeList(Edge e) {
         if (sortedEdges == null)
             sortedEdges = e;
@@ -259,13 +266,6 @@ class Graph {
             e.next = current;
             previous.next = e;
         }
-    }
-
-    private Vertex getExistingOrNewVertex(int v) {
-        if (vertexExist(v))
-            return vertices[v];
-        else
-            return new Vertex(v);
     }
 
     private void addVertexAndEdge(Vertex v, Edge e) {
@@ -473,7 +473,7 @@ public class WIBUP4 {
             addEdge(tokens);
             tokens = input.nextLine().split(" ");
         }
-        runDijkstraAndPrim();
+        runPathFinder();
     }
 
     private void initializeWithFirstLine() {
@@ -503,7 +503,7 @@ public class WIBUP4 {
         g.addEdge(fromVertexID, toVertexID, weight);
     }
 
-    private void runDijkstraAndPrim() {
+    private void runPathFinder() {
         PathFinder pf = new PathFinder(g);
         pf.findShortestPaths();
         pf.findMinimumSpanningTree();
