@@ -79,6 +79,7 @@ class OutDegree {
 class Edge {
     private Vertex from, to;
     private int weight;
+    Edge next;
     boolean isMinimumSpanning;
 
     Edge(Vertex from, Vertex to, int weight) {
@@ -224,6 +225,7 @@ class Graph {
     private Vertex[] vertices;
     private MyPriorityQueue pq;
     private int sourceVertex;
+    private Edge head;
 
     Graph(int numOfVertices, int sourceVertex) {
         this.sourceVertex = sourceVertex;
@@ -242,8 +244,33 @@ class Graph {
         Vertex toV = getExistingOrNewVertex(fromVertexID);
         Edge e = new Edge(fromV, toV, weight);
 
+        addToSortedEdgeList(e);
         addVertexAndEdge(fromV, e);
         addVertexAndEdge(toV, e);
+    }
+
+    private void addToSortedEdgeList(Edge e) {
+        if (head == null)
+            head = e;
+        else
+            placeByWeight(e);
+    }
+
+    private void placeByWeight(Edge e) {
+        Edge current = e;
+        Edge previous = current;
+
+        if (e.getWeight() < current.getWeight()) {
+            head = e;
+            head.next = current;
+        } else {
+            while (e.getWeight() > current.getWeight()) {
+                previous = current;
+                current = current.next;
+            }
+            previous.next = e;
+            previous.next.next = current;
+        }
     }
 
     private Vertex getExistingOrNewVertex(int v) {
@@ -304,6 +331,89 @@ class Graph {
         }
     }
 }
+
+class UnionFind {
+    /*
+    The union data structure is implemented by an array. Positive numbers are directed edges
+    whose value points to the parent vertex key value. Note that the key values are the same
+    as the index of the vertex. Negative numbers represent root vertices and the absolute value
+    of that negative number represents the number of vertices connected to that root through unions.
+     */
+    private int[] sets;
+    private int setsRemaining;
+    private int rootOfLastUnion;
+
+
+    public UnionFind(int size) {
+        if (size > 0) {
+            rootOfLastUnion = 0;
+            sets = new int[size];
+            setsRemaining = size;
+            initializeSets();
+        } else
+            throw new IllegalArgumentException("size must be greater than zero");
+    }
+
+    private void initializeSets() {
+        for (int i = 0; i < sets.length; i++)
+            sets[i] = -1;
+    }
+
+    public void union(int x, int y) {
+        if (x == y) return; // nothing to union
+
+        int xRoot = find(x);
+        int yRoot = find(y);
+
+        if (getTotalMembers(yRoot) <= getTotalMembers(xRoot))
+            connectRoots(yRoot, xRoot);
+        else
+            connectRoots(xRoot, yRoot);
+    }
+
+    /**
+     * @return root vertex
+     */
+    public int find(int element) {
+        return findAndPathCompress(element);
+    }
+
+    private int findAndPathCompress(int element) {
+        if (sets[element] < 0)
+            return element;
+
+        return sets[element] = findAndPathCompress(sets[element]);
+    }
+
+    private void connectRoots(int childRoot, int parentRoot) {
+        if (childRoot != parentRoot) {
+            sets[parentRoot] += sets[childRoot];
+            sets[childRoot] = parentRoot;
+            setsRemaining--;
+            rootOfLastUnion = parentRoot;
+        }
+    }
+
+    public void printLastUnionRootAndSize() {
+        System.out.println(rootOfLastUnion + " " + getTotalMembers(rootOfLastUnion));
+    }
+
+    private int getTotalMembers(int root) {
+        return -sets[root];
+    }
+
+    public void printSets() {
+        for (int value : sets)
+            System.out.print(value + " ");
+
+        System.out.println();
+    }
+
+    public int getSetsRemaining() {
+        return setsRemaining;
+    }
+}
+
 
 class PathFinder {
     private Graph g;
