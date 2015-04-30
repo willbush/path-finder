@@ -50,7 +50,7 @@ public class InputTest {
         assertEquals(expectedOut, out.toString());
     }
 
-    @Ignore
+    @Test
     public void canProcess200VertexCompleteGraph() throws IOException {
         File input = new File("test/testData/200completeIN.txt");
         InputStream in = new FileInputStream(input);
