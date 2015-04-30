@@ -30,10 +30,7 @@ public class CompleteGraphGenerator {
         int weightIndex = 0;
 
         for (int v1 = 1; v1 < numOfVertices + 1; v1++) {
-            for (int v2 = v1; v2 < numOfVertices + 1; v2++) {
-                if (v1 == v2)
-                    continue;
-
+            for (int v2 = v1 + 1; v2 < numOfVertices + 1; v2++) {
                 String s = v1 + " " + v2 + " " + randWeights.get(weightIndex++);
                 edges.add(s);
             }
