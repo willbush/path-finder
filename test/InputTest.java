@@ -1,4 +1,5 @@
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.*;
@@ -46,6 +47,39 @@ public class InputTest {
         program.run();
 
         String expectedOut = getOutputString("test/testData/p4d3out.txt");
+        assertEquals(expectedOut, out.toString());
+    }
+
+    @Ignore
+    public void canProcess200VertexCompleteGraph() throws IOException {
+        File input = new File("test/testData/200completeIN.txt");
+        InputStream in = new FileInputStream(input);
+        WIBUP4 program = new WIBUP4(in);
+        program.run();
+
+        String expectedOut = getOutputString("test/testData/200completeOUT.txt");
+        assertEquals(expectedOut, out.toString());
+    }
+
+    @Ignore
+    public void canProcess512VertexCompleteGraph() throws IOException {
+        File input = new File("test/testData/512completeIN.txt");
+        InputStream in = new FileInputStream(input);
+        WIBUP4 program = new WIBUP4(in);
+        program.run();
+
+        String expectedOut = getOutputString("test/testData/512completeOUT.txt");
+        assertEquals(expectedOut, out.toString());
+    }
+
+    @Ignore
+    public void canProcess768VeretxCompleteGraph() throws IOException {
+        File input = new File("test/testData/768completeIN.txt");
+        InputStream in = new FileInputStream(input);
+        WIBUP4 program = new WIBUP4(in);
+        program.run();
+
+        String expectedOut = getOutputString("test/testData/768completeOUT.txt");
         assertEquals(expectedOut, out.toString());
     }
 
