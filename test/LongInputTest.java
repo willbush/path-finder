@@ -1,15 +1,16 @@
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 
-public class InputTest {
+public class LongInputTest {
+
     ByteArrayOutputStream out = new ByteArrayOutputStream();
 
     @Before
@@ -18,46 +19,40 @@ public class InputTest {
     }
 
     @Test
-    public void canProcessInput1() throws IOException {
-        File input = new File("test/testData/p4d1in.txt");
+    public void canProcess200VertexCompleteGraph() throws IOException {
+        File input = new File("test/testData/200completeIN.txt");
         InputStream in = new FileInputStream(input);
         WIBUP4 program = new WIBUP4(in);
         program.run();
 
-        String expectedOut = getOutputString("test/testData/p4d1out.txt");
+        String expectedOut = getOutputString("test/testData/200completeOUT.txt");
         assertEquals(expectedOut, out.toString());
     }
 
     @Test
-    public void canProcessInput2() throws IOException {
-        File input = new File("test/testData/p4d2in.txt");
+    public void canProcess512VertexCompleteGraph() throws IOException {
+        File input = new File("test/testData/512completeIN.txt");
         InputStream in = new FileInputStream(input);
         WIBUP4 program = new WIBUP4(in);
         program.run();
 
-        String expectedOut = getOutputString("test/testData/p4d2out.txt");
+        String expectedOut = getOutputString("test/testData/512completeOUT.txt");
         assertEquals(expectedOut, out.toString());
     }
 
-    @Test
-    public void canProcessInput3() throws IOException {
-        File input = new File("test/testData/p4d3in.txt");
+    /*
+    This edge list is really too long to process; It takes about 7 minutes.
+    Enable if you're willing to wait that long for the test to pass.
+     */
+    @Ignore
+    public void canProcess768VeretxCompleteGraph() throws IOException {
+        File input = new File("test/testData/768completeIN.txt");
         InputStream in = new FileInputStream(input);
         WIBUP4 program = new WIBUP4(in);
         program.run();
 
-        String expectedOut = getOutputString("test/testData/p4d3out.txt");
+        String expectedOut = getOutputString("test/testData/768completeOUT.txt");
         assertEquals(expectedOut, out.toString());
-    }
-
-    @Test
-    public void canProcessRandomComplete() {
-        Random r = new Random();
-        CompleteGraphGenerator cg = new CompleteGraphGenerator(r.nextInt(10) + 1); // interval [1, 10]
-        cg.printEdgeList();
-        InputStream in = new ByteArrayInputStream(out.toByteArray());
-        WIBUP4 program = new WIBUP4(in);
-        program.run();
     }
 
     private String getOutputString(String path) throws IOException {
