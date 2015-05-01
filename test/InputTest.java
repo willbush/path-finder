@@ -51,7 +51,7 @@ public class InputTest {
     }
 
     @Test
-    public void canProcessRandomComplete() {
+    public void canProcessRandomCompleteGraph() {
         Random r = new Random();
         CompleteGraphGenerator cg = new CompleteGraphGenerator(r.nextInt(10) + 1); // interval [1, 10]
         cg.printEdgeList();

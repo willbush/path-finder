@@ -2,9 +2,9 @@ import java.util.Scanner;
 
 class Vertex {
     private OutDegree outDegrees; // a singly linked list of outDegrees for the vertex
-    private int id; // vertices are identified by the set of natural numbers.
+    private final int id; // vertices are identified by the set of natural numbers.
     Vertex previous; // previous vertex Dijkstra has visited
-    int distance; // distance from the source vertex (sum of edge weights this and source).
+    int distance; // distance from the source vertex (sum of edge weights between this and source).
     int heapIndex; // heapIndex is the current location of the vertex in the heap.
     boolean isKnown; // used to flag that Dijkstra has added it to the known set.
 
@@ -77,8 +77,8 @@ class OutDegree {
 }
 
 class Edge {
-    private Vertex left, right;
-    private int weight;
+    private final Vertex left, right;
+    private final int weight;
     Edge next; // next sorted (by weight) edge
     boolean isMinimumSpanning;
 
@@ -110,11 +110,11 @@ class Edge {
 
 /**
  * This priority queue is implemented using a binary min heap. Since every
- * graph starts out with a known vertex with minimum distance (the source)
- * and all other vertices are MAX_INT, buildHeap is not necessary. The heap
+ * graph starts out with a source vertex with minimum distance and all other
+ * vertices are MAX_INT, buildHeap is not necessary. The heap
  * is built a vertex at a time as edges are added to the adjacency list.
  * The queue is constructed with a min (source) vertex and all other added
- * vertices are assumed to be MAX_INT.
+ * vertices must be MAX_INT.
  */
 class MyPriorityQueue {
     private int elementCount, index = 1;
@@ -129,6 +129,9 @@ class MyPriorityQueue {
     }
 
     public void addVertex(Vertex v) {
+        if (v.distance != Integer.MAX_VALUE)
+            throw new IllegalArgumentException("Added vertex must have Integer.MAX_VALUE for distance");
+
         v.heapIndex = index;
         heap[index++] = v;
     }
@@ -208,10 +211,10 @@ class MyPriorityQueue {
 }
 
 class Graph {
-    private Vertex[] vertices;
-    private MyPriorityQueue pq;
-    private int sourceVertex;
-    private int capacity;
+    private final Vertex[] vertices;
+    private final MyPriorityQueue pq;
+    private final int sourceVertex;
+    private final int capacity;
     private Edge sortedEdges; // singly linked list of sorted edges for Kruskal's MST algorithm.
 
     Graph(int numOfVertices, int sourceVertex) {
@@ -340,7 +343,7 @@ class UnionFind {
 
     public UnionFind(int size) {
         if (size > 0) {
-            sets = new int[size + 1];
+            sets = new int[size];
             initializeSets();
         } else
             throw new IllegalArgumentException("size must be greater than zero");
@@ -389,7 +392,6 @@ class UnionFind {
     }
 }
 
-
 class PathFinder {
     private Graph g;
     private MyPriorityQueue pq;
@@ -433,7 +435,7 @@ class PathFinder {
      * finds the minimum spanning tree using Kruskal's algorithm
      */
     public void findMinimumSpanningTree() {
-        UnionFind u = new UnionFind(g.getCapacity());
+        UnionFind u = new UnionFind(g.getCapacity() + 1);
         Edge e = g.getSortedEdges();
 
         while (e != null) {
@@ -458,7 +460,7 @@ class PathFinder {
 }
 
 public class WIBUP4 {
-    private Scanner input;
+    private final Scanner input;
     private Graph g;
 
     public WIBUP4(java.io.InputStream in) {
