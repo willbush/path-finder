@@ -459,11 +459,11 @@ class PathFinder {
     }
 }
 
-public class WIBUP4 {
+public class Main {
     private final Scanner input;
     private Graph g;
 
-    public WIBUP4(java.io.InputStream in) {
+    public Main(java.io.InputStream in) {
         input = new Scanner(in);
     }
 
@@ -514,7 +514,7 @@ public class WIBUP4 {
     }
 
     public static void main(String[] args) {
-        WIBUP4 program = new WIBUP4(System.in);
+        Main program = new Main(System.in);
         program.run();
     }
 }

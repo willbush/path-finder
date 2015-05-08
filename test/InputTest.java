@@ -21,7 +21,7 @@ public class InputTest {
     public void canProcessInput1() throws IOException {
         File input = new File("test/testData/p4d1in.txt");
         InputStream in = new FileInputStream(input);
-        WIBUP4 program = new WIBUP4(in);
+        Main program = new Main(in);
         program.run();
 
         String expectedOut = getOutputString("test/testData/p4d1out.txt");
@@ -32,7 +32,7 @@ public class InputTest {
     public void canProcessInput2() throws IOException {
         File input = new File("test/testData/p4d2in.txt");
         InputStream in = new FileInputStream(input);
-        WIBUP4 program = new WIBUP4(in);
+        Main program = new Main(in);
         program.run();
 
         String expectedOut = getOutputString("test/testData/p4d2out.txt");
@@ -43,7 +43,7 @@ public class InputTest {
     public void canProcessInput3() throws IOException {
         File input = new File("test/testData/p4d3in.txt");
         InputStream in = new FileInputStream(input);
-        WIBUP4 program = new WIBUP4(in);
+        Main program = new Main(in);
         program.run();
 
         String expectedOut = getOutputString("test/testData/p4d3out.txt");
@@ -56,7 +56,7 @@ public class InputTest {
         CompleteGraphGenerator cg = new CompleteGraphGenerator(r.nextInt(10) + 1); // interval [1, 10]
         cg.printEdgeList();
         InputStream in = new ByteArrayInputStream(out.toByteArray());
-        WIBUP4 program = new WIBUP4(in);
+        Main program = new Main(in);
         program.run();
     }
 
